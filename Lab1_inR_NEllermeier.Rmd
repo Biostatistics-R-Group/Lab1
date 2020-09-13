@@ -24,7 +24,7 @@ library(ggplot2)
 kenya_dataset <- read_dta("data/lab_1_kenya.dta")
 ```
 
-
+#showing you a change here
 #explore dataset
 ```{r}
 head(kenya_dataset)
