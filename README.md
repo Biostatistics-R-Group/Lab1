@@ -17,4 +17,10 @@ kenya <- kenya %>%
 
 -Nathan 
 
+# Help on histograms
+This is the link I've been using for basic histograms in R
+https://www.datacamp.com/community/tutorials/make-histogram-ggplot2?utm_source=adwords_ppc&utm_campaignid=1565261270&utm_adgroupid=67750485268&utm_device=c&utm_keyword=&utm_matchtype=b&utm_network=g&utm_adpostion=&utm_creative=332661264371&utm_targetid=aud-299261629574:dsa-473406569475&utm_loc_interest_ms=&utm_loc_physical_ms=9009745&gclid=CjwKCAjwzIH7BRAbEiwAoDxxTlpeDJzRgpD-yYkW1mWBLw0KD0LU4hK2avQp02qHr6b7L0jOyUwHXBoCr6wQAvD_BwE
+
+-Nathan
+
 
