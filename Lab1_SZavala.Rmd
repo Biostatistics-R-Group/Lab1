@@ -1,0 +1,219 @@
+---
+title: "Lab1_SZavala"
+output: html_notebook
+---
+```{r}
+library (foreign)
+library (skimr)
+library (dplyr)
+library (dbplyr)
+library (ggplot2)
+library (tidyr)
+library (tidyverse)
+library (broom)
+library (haven)
+```
+
+
+1.	Use the dataset Lab_1_kenya.dta for this assignment.
+```{r}
+lab_1_kenya <- read_dta("/Users/sofi/Desktop/IntroStatsEpi/Labs/Lab1/lab_1_kenya.dta")
+kenya1 <- lab_1_kenya
+str (kenya1)
+```
+
+2.	Construct the following derived variables.  For each, examine the component variables for coded special values (e.g., missing, unknown) and be sure to set derived variable values appropriately (e.g., set coded missing and unknown values to Stata missing ‘.’).  Label all variables and the coded values for the categorical ones.
+
+a.	bord5: Dichotomous variable indicating birth order of the child. [0=current child was 1st through 4th in the birth order, 1=current child was later than 4th in the birth order]. Based on variable bord (birth order).
+
+b.	male: Dichotomous categorical variable indicating that the child is male [0=female, 1=male]. Based on variable b4.
+
+c.	mweight: Continuous maternal weight at time of interview (in kilograms). Based on variable v437. Note that v437contains 1 implied decimal place. Divide by 10 to get kilograms.
+
+d.	mheight:  Continuous maternal height at time of interview (in meters). Based on variable v438. Note that this variable is in centimeters and also contains 1 implied decimal place.
+
+e.	mbmi: maternal body mass index (BMI).  Weight (kilograms) / height2 (meters).
+
+```{r}
+#a. Crate bord5 variable
+kenya1<-kenya1 %>% 
+  mutate (bord5 = case_when(bord >=1 & bord < 5 ~ 0,
+                            bord >=5 ~ 1))
+
+var_lab (kenya1$bord5) = "Birth order - categorical"
+val_lab (kenya1$bord5) = num_lab ("0 child 1-4
+                                  1 child >=5")
+
+
+#b. Create male variable
+kenya1<-kenya1 %>% 
+  mutate (male = case_when(b4 == 1 ~ "1", 
+                           b4 == 2 ~ "0"))
+
+var_lab (kenya1$male) = "Child is male"
+val_lab (kenya1$male) = num_lab ("0 female
+                                  1 male")
+
+#c. Create mweight
+kenya1<-kenya1 %>% 
+  mutate (mweight = v437/10)
+
+#d. Create mheight
+kenya1<-kenya1 %>% 
+  mutate (mheight = v438/1000)
+
+#e. Create mbmi
+kenya1<- kenya1 %>% 
+  mutate (mbmi = mweight/(mheight^2))
+
+
+
+#Checking for missing values
+#var A:
+table(kenya1$bord5, kenya1$bord, useNA= "always")
+table (kenya1$male, useNA="always")
+summary (kenya1$mweight)
+summary (kenya1$mheight)
+summary (kenya1$mbmi)
+
+str (kenya1)
+```
+
+
+3.	Generate frequency histograms of mweight, mheight and mbmi.  Put meaningful axis labels and a title on each figure.
+```{r}
+ggplot (data=kenya1, aes(x=mweight)) + geom_histogram() +
+  ggtitle ("Distribution of maternal weight") +
+  xlab ("Weight (kg)") + ylab ("Frequency")
+
+
+ggplot (data=kenya1, aes(x=mheight)) + geom_histogram()+
+  ggtitle ("Distribution of maternal height") +
+  xlab ("Height (m)") + ylab ("Frequency")
+
+
+ggplot (data=kenya1, aes(x=mbmi)) + geom_histogram()+
+  ggtitle ("Distribution of maternal body mass index (BMI)") +
+  xlab ("BMI (kg/m^2)") + ylab ("Frequency")
+```
+
+
+4.	Generate boxplots of mweight, mheight, and mbmi for the levels of magec.  Put meaningful axis labels and a title on each figure.
+```{r}
+ggplot (kenya1, aes(x=factor(magec), y=mweight, fill=factor(magec))) + 
+  geom_boxplot () +
+  labs (title= "Maternal weight per age category",
+        x = "Maternal age", y = "Maternal weight (kg)") +
+  scale_fill_discrete(name="Maternal age\n(years)",
+                      breaks=c("0", "1", "2"),
+                      labels=c("1: <18", "2: 18-39", "3: >=40"))
+
+
+ggplot (kenya1, aes(x=factor(magec), y=mheight, fill=factor(magec))) + 
+  geom_boxplot () +
+  labs (title= "Maternal height per age category",
+        x = "Maternal age", y = "Maternal height (m)") +
+  scale_fill_discrete(name="Maternal age\n(years)",
+                      breaks=c("0", "1", "2"),
+                      labels=c("1: <18", "2: 18-39", "3: >=40"))
+
+
+ggplot (kenya1, aes(x=factor(magec), y=mbmi, fill=factor(magec))) + 
+  geom_boxplot () +
+  labs (title= "Maternal body mass index (BMI) per age category",
+        x = "Maternal age", y = "Maternal BMI (kg/m^2)") +
+  scale_fill_discrete(name="Maternal age\n(years)",
+                      breaks=c("0", "1", "2"),
+                      labels=c("1: <18", "2: 18-39", "3: >=40"))
+```
+
+
+5.	Fill in Table 1 with the frequency counts and percentages for the levels of the 3 categorical variables you have generated.  Calculate percentages only for the non-missing values. Round percentages to 1 decimal place.
+```{r}
+library (tableone)
+
+#vars: bord5, magec, male
+
+myVars <- c("bord5", "magec", "male")
+catVars <- c("bord5", "magec", "male")
+myTable <- CreateTableOne(vars = myVars, data = kenya1, factorVars = catVars)
+
+myTable
+print (myTable, showAllLevels = TRUE, formatOptions = list(big.mark=","))
+summary (myTable)
+```
+
+ 
+6.	Table 2 is the data dictionary for the Kenya dataset with columns added to annotate the variables.
+a.	Fill in these columns in this table for the variables originally on the dataset.
+b.	Add rows for the 7 new variables that you have created in both Labs 0 and 1.
+```{r}
+summary (kenya1$bord)
+skim (kenya1$bord)
+
+summary (kenya1$b3, useNA="always")
+skim (kenya1$b3)
+
+summary (kenya1$b4, useNA="always")
+skim (kenya1$b4)
+
+summary (kenya1$b5, useNA="always")
+
+summary (kenya1$b7, useNA="always")
+
+summary (kenya1$m2n, useNA="always")
+
+summary (kenya1$m18, useNA="always")
+
+table (kenya1$m19, useNA="always")
+kenya1 %>% 
+  filter (m19 != 9996) %>% 
+  drop_na (m19) %>% 
+  summary (m19, useNA="always")
+
+mode (kenya1$m19)
+hist (kenya1$m19)
+
+
+summary (kenya1$v008, useNA="always")
+
+summary (kenya1$v011, useNA="always")
+
+summary (kenya1$v025, useNA="always")
+
+summary (kenya1$v437, useNA="always")
+
+summary (kenya1$v438, useNA="always")
+
+summary (kenya1$v463z, useNA="always")
+
+summary (kenya1$s109, useNA="always")
+
+summary (kenya1$mage, useNA="always")
+
+summary (kenya1$magec, useNA="always")
+
+summary (kenya1$bord5, useNA="always")
+
+summary (kenya1$male, useNA="always")
+
+summary (kenya1$mweight, useNA="always")
+
+summary (kenya1$mheight, useNA="always")
+
+summary (kenya1$mbmi, useNA="always")
+
+summarise (min (m2n), max(m2n), n())
+
+
+skim (kenya1$s109)
+
+
+```
+
+
+7.	Examine the range and proportion of missing for each of the variables 7 you have created in Labs 0 and 1.  Are there characteristics of any of these variables that are concerning (e.g., missing, suspicious or impossible values)?  In contemplating analysis of these data, what do you think should be done with anomalous information?  What effect would missing values have on the validity of your analyses (e.g., how might missing or extreme values affect inferences)?
+```{r}
+
+```
+
