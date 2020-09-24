@@ -1,0 +1,259 @@
+---
+title: "Lab1_inR_NEllermeier"
+output: html_notebook
+---
+
+#Biostat 705 Lab 1
+#Kenya Datset
+#Nathan Ellermeier
+#Nine Eleven
+
+
+#libraries
+```{r}
+library(haven)
+library(skimr)
+library(tidyverse)
+library(ggplot2)
+```
+
+
+#pull in dataset
+```{r}
+
+kenya_dataset <- read_dta("data/lab_1_kenya.dta")
+```
+
+
+#explore dataset
+```{r}
+head(kenya_dataset)
+```
+
+
+```{r}
+skim(kenya_dataset)
+```
+
+#creating new variable bord5 -- should we be creating these values as strings or numeric?
+#if dichtomous, how to make dichotomous? in R, is that just a string of 0/1?
+```{r}
+kenya <- kenya_dataset %>%
+  mutate(bord5 = NA)
+    
+kenya <- kenya %>%
+  mutate(bord5 = case_when(
+    bord <5 ~ "0",
+    bord >=5 ~ "1",
+  TRUE~NA_character_
+  ))
+  
+```
+
+```{r}
+skim(kenya$bord5)
+
+table(kenya$bord5)
+
+```
+#investigate b4
+```{r}
+skim(kenya$b4)
+```
+
+
+#generate male variable
+#in original dataset, b4 is coded as 2 = woman and 1 = man
+#NEED TO LABEL VARIABLES
+```{r}
+kenya <- kenya %>%
+  mutate(male = NA)
+    
+kenya <- kenya %>%
+  mutate(male = case_when(
+    b4 ==2 ~ "0",
+    b4 ==1 ~ "1",
+  TRUE~NA_character_
+  ))
+```
+
+
+#generating male2 using if_else command
+#just for fun w/ if_else() command
+```{r}
+kenya <- kenya %>%
+  mutate(male2 = if_else(b4 ==2, "0", "1"))
+  
+```
+
+#variable labels
+#fucking finally
+#but all this did is created a vector and replaced my values with strings female and male  ????
+```{r}
+kenya$male2 <- factor(kenya$male2,
+                levels = c(0,1),
+                labels = c("Female","Male"))
+```
+
+
+#generate new variable mweight
+```{r}
+kenya <- kenya %>%
+  mutate(mweight = v437/10)
+
+```
+
+#generate new variable mheight
+```{r}
+kenya <- kenya %>%
+  mutate(mheight = v438/1000)
+```
+
+#generate new variable mbmi
+```{r}
+kenya <- kenya %>%
+  mutate(mbmi = mweight / mheight)
+```
+
+```{r}
+skim(kenya$mheight)
+```
+
+
+
+#now time to consider how we might save the following histograms so that it's easy for Larry
+#Mother's Weight
+```{r}
+hist(kenya$mweight, main = "Mother's Weight" , xlab = "Mother's Weight in Kg", ylab = "# of occurences")
+```
+
+
+#I really wanna do some ggplot
+#Mother's Height
+
+```{r}
+ggplot(data = kenya, aes(kenya$mheight)) +
+         geom_histogram()
+  
+```
+
+#different format
+```{r}
+kenya %>%
+  ggplot() +
+  geom_histogram(mheight, aes(color = "orange"))
+```
+
+
+
+#and compare it to base R hist()
+```{r}
+hist(kenya$mheight)
+```
+
+
+#qplot w/ mheight
+
+```{r}
+qplot(kenya$mheight, geom="histogram")
+```
+
+#qplot w/ adjustments
+#argument for bindwidth either doesn't show perceivable change or give you a giant blue box over whole visualization-- wtf
+#difference b/w I() and !I() in fill = and col = -- without it, the qplot() function prints a legend saying that "col="red""
+#xlim = adjust the limit of the x axis with vector running between c(a,b)
+#binwidth function does not seem to change binwidth!!
+```{r}
+qplot(kenya$mheight, 
+      geom="histogram",
+      bindwidth=.001,
+      main = "Histogram of Mother's Height",
+      xlab = "Height in Meters",
+      ylab = "# of occurences",
+      fill =I("blue"),
+      col=I("red"),
+      alpha=I(.2),
+      xlim = c(1.2, 2)
+      )
+```
+
+
+
+
+#ggplot w/ mheight
+#ADDING
+#why is this showing up differently for # of occurences than the histogram above?
+#breaks() are used for binwidth. can also express the seq() argument using c(a,b) instead of seq(a,b, by=c)
+
+#result renders "removed 308 rows containing non-finite values(stat_bin)"
+#and also "removed 191 rows containing missing values (geom_bar)"
+#what is the distinction here-- does data need cleaning for non-finite values? how to do that--
+
+#aes(fill=..count..) renders a hist with darker colors for few fills and ligther colors for more fills
+```{r}
+ggplot(data=kenya, aes(x=mheight)) +
+  geom_histogram(breaks=seq(0, 3, by=.02),
+                 col="red",
+                 aes(fill=..count..),
+                 alpha = 1) +
+  scale_fill_gradient("# of occurences", low="green", high="red") +
+  labs(title="Histogram of Mother's Height", x="Height in Meters", y="# of occurences") +
+  xlim(c(1,2.1)) +
+  ylim(c(0,2000))
+                 
+```
+
+
+
+
+
+
+
+
+
+
+
+
+#create histogram
+```{r}
+hist(kenya$bord , main = "Birth Order", xlab = "Age", ylab = "Number")
+```
+
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
