@@ -1,0 +1,202 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+load libraries
+```{r}
+library(haven)
+library(skimr)
+library(tidyverse)
+library(ggplot2)
+library(rmarkdown)
+```
+
+
+
+# TASK 1: pull in dataset
+```{r}
+
+kenya_dataset <- read_dta("data/lab_1_kenya.dta")
+```
+---
+
+_Explore Dataset_
+```{r}
+head(kenya_dataset)
+```
+
+```{r}
+skim(kenya_dataset)
+```
+
+# **TASK 2: _generate variables_**
+## Task 2a: generate bord5 variable
+```{r}
+kenya <- kenya_dataset %>%
+  mutate(bord5 = NA)
+    
+kenya <- kenya %>%
+  mutate(bord5 = case_when(
+    bord <5 ~ "0",
+    bord >=5 ~ "1",
+  TRUE~NA_character_
+  ))
+  
+```
+
+```{r}
+skim(kenya$bord5)
+```
+
+
+## TASK 2b: male
+### in original dataset, b4 is coded as 2 = woman and 1 = man
+
+```{r}
+kenya <- kenya %>%
+  mutate(male = NA)
+    
+kenya <- kenya %>%
+  mutate(male = case_when(
+    b4 ==2 ~ "0",
+    b4 ==1 ~ "1",
+  TRUE~NA_character_
+  ))
+```
+
+## TASK 2c: mweight
+```{r}
+kenya <- kenya %>%
+  mutate(mweight = v437/10)
+```
+
+## TASK 2d: mheight
+```{r}
+kenya <- kenya %>%
+  mutate(mheight = v438/1000)
+```
+
+## TASK 2e: mbmi
+```{r}
+kenya <- kenya %>%
+  mutate(mbmi = mweight / mheight)
+```
+
+
+# **TASK 3: _histograms_**
+
+## mweight
+```{r}
+kenya %>%
+  ggplot() +
+  geom_histogram(aes(mweight,fill = I("blue"))) +
+  ggtitle("Distribution of maternal weight") +
+  xlab("Weight (kg)") +
+  ylab("Frequency")
+
+  ggsave("mweight_hist.png")
+```
+
+
+
+## mheight
+```{r}
+kenya %>%
+  ggplot() +
+  geom_histogram(aes(mheight,fill = I("orange"))) +
+  ggtitle("Distribution of maternal height") +
+  xlab("Height (m)") +
+  ylab("Frequency")
+  
+  ggsave("mheight_hist.png")
+```
+
+
+
+## mbmi
+
+```{r}
+
+kenya %>%
+  ggplot() +
+  geom_histogram(aes(mbmi,fill = I("red"))) +
+  ggtitle("Distribution of Maternal BMI") +
+  xlab("BMI") +
+  ylab("Frequency")
+
+  ggsave("mbmi_hist.png")
+
+```
+
+
+
+# **TASK 4: _boxplots_**
+
+## mweight
+```{r}
+
+mweight_boxplot <- ggplot(kenya, aes(x=factor(magec), y=mweight, I(fill=factor(magec)))) +
+  geom_boxplot(aes(fill=I("blue")))
+               
+mweight_boxplot <- mweight_boxplot + scale_x_discrete(name = "Mother's Age",
+                                                      breaks = c("0", "1", "2"),
+                                                      labels = c("<18", "18-39",">39")) +
+  scale_y_continuous(name = "Mother's Weight (m)") +
+  labs(title= "Mother's Weight")
+
+mweight_boxplot
+  
+ggsave("mweight_boxplot.png")
+
+```
+
+ 
+
+## mheight
+
+
+```{r}
+mheight_boxplot <- ggplot(kenya, aes(x=factor(magec), y=mheight, I(fill=factor(magec)))) +
+  geom_boxplot(aes(fill=I("orange")))
+
+mheight_boxplot <- mheight_boxplot + scale_x_discrete(name = "Mother's Age",
+                                                      breaks = c("0", "1", "2"),
+                                                      labels = c("<18", "18-39",">39")) +
+  scale_y_continuous(name = "Mother's Height (m)") +
+  labs(title= "Mother's Height")
+
+mheight_boxplot
+  
+ggsave("mheight_boxplot.png")
+```
+
+
+
+
+
+
+## mbmi
+```{r}
+mbmi_boxplot <- ggplot(kenya, aes(x=factor(magec), y=mbmi, I(fill=factor(magec)))) +
+  geom_boxplot(aes(fill=I("red")))
+               
+mbmi_boxplot <- mbmi_boxplot + scale_x_discrete(name = "Mother's Age",
+                                                      breaks = c("0", "1", "2"),
+                                                      labels = c("<18", "18-39",">39")) +
+  scale_y_continuous(name = "Mother's BMI (kg/m^2)") +
+  labs(title= "Mother's BMI")
+
+mbmi_boxplot
+
+ggsave("mbmi_boxplot.png")
+```
+
+
+
+
+
+
